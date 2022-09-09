@@ -52,6 +52,7 @@ bot.on('join', (event) => {
 
 bot.on('registered', () => {
   console.log('Connected!');
+  client.say('nickserv', 'identify skillnews ' + process.env.IDENTIFY);
 
   bot.join(config.channel);
 
