@@ -66,7 +66,7 @@ bot.on('join', (event) => {
 
 bot.on('registered', () => {
   console.log('Connected!');
-  bot.say('NickServ', 'IDENTIFY skillnews' + process.env.IDENTIFY);
+  bot.say('NickServ', 'IDENTIFY skillnews ' + process.env.IDENTIFY);
 
   bot.join(config.channel);
 
