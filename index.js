@@ -20,6 +20,20 @@ function ip2Hex(address) {
   }).join('');
 }
 
+function getAuthors(item) {
+
+  if (!item['rss:author']) return '';
+
+  if (Array.isArray(item['rss:author'])) {
+    const authors = item['rss:author'].map(author => author.name['#']);
+    const lastAuthor = authors.pop();
+    return `${authors.join(', ')} and ${lastAuthor}`;
+  }
+
+  return `${item['rss:author'].name['#']}`;
+}
+
+
 function initReader() {
   config.feeds.forEach((e) => {
     feeder.add({
@@ -45,7 +59,7 @@ bot.connect({
 bot.on('join', (event) => {
   if (event.nick === config.botName) {
     feeder.on('new-item', (item) => {
-      bot.say(config.channel, `${c.blue(item.title)} - ${item.link} by ${item.author}`);
+      bot.say(config.channel, `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`);
     });
   }
 });
