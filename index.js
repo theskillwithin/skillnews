@@ -1,38 +1,39 @@
-const IRC = require('irc-framework');
-const ip = require('ip');
+const IRC = require("irc-framework");
+const ip = require("ip");
 
 const bot = new IRC.Client();
-const RssFeedEmitter = require('rss-feed-emitter');
-const c = require('irc-colors');
-const config = require('./config.js');
+const RssFeedEmitter = require("rss-feed-emitter");
+const c = require("irc-colors");
+const config = require("./config.js");
 
 const feeder = new RssFeedEmitter();
 
 function ip2Hex(address) {
-  return address.split('.').map((octet) => {
-    let hex = parseInt(octet, 10).toString(16);
+  return address
+    .split(".")
+    .map((octet) => {
+      let hex = parseInt(octet, 10).toString(16);
 
-    if (hex.length === 1) {
-      hex = `0${hex}`;
-    }
+      if (hex.length === 1) {
+        hex = `0${hex}`;
+      }
 
-    return hex;
-  }).join('');
+      return hex;
+    })
+    .join("");
 }
 
 function getAuthors(item) {
+  if (!item["rss:author"]) return "";
 
-  if (!item['rss:author']) return '';
-
-  if (Array.isArray(item['rss:author'])) {
-    const authors = item['rss:author'].map(author => author.name['#']);
+  if (Array.isArray(item["rss:author"])) {
+    const authors = item["rss:author"].map((author) => author.name["#"]);
     const lastAuthor = authors.pop();
-    return `${authors.join(', ')} and ${lastAuthor}`;
+    return `${authors.join(", ")} and ${lastAuthor}`;
   }
 
-  return `${item['rss:author'].name['#']}`;
+  return `${item["rss:author"].name["#"]}`;
 }
-
 
 function initReader() {
   config.feeds.forEach((e) => {
@@ -56,19 +57,28 @@ bot.connect({
   ping_timeout: 120,
 });
 
-bot.on('join', (event) => {
+bot.on("join", (event) => {
   if (event.nick === config.botName) {
-    feeder.on('new-item', (item) => {
-      bot.say(config.channel, `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`);
+    feeder.on("new-item", (item) => {
+      config.channels.forEach((channel) => {
+        bot.say(
+          channel,
+          `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`
+        );
+      });
     });
   }
 });
 
-bot.on('registered', () => {
-  console.log('Connected!');
-  bot.say('NickServ', 'IDENTIFY skillnews ' + process.env.IDENTIFY);
+bot.on("registered", () => {
+  console.log("Connected!");
+  bot.say("NickServ", `IDENTIFY skillnews ${process.env.IDENTIFY}`);
 
-  bot.join(config.channel);
+  setTimeout(() => {
+    config.channels.forEach((channel) => {
+      bot.join(channel);
+    });
+  }, 10000);
 
   initReader();
 });
