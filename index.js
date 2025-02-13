@@ -58,6 +58,7 @@ bot.connect({
 });
 
 bot.on("join", (event) => {
+  console.log(event);
   if (event.nick === config.botName) {
     feeder.on("new-item", (item) => {
       bot.say(
