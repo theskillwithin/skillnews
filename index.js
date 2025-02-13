@@ -59,17 +59,13 @@ bot.connect({
 
 bot.on("join", (event) => {
   if (event.nick === config.botName) {
-    console.log("Joined channel:", event.channel);
+    feeder.on("new-item", (item) => {
+      bot.say(
+        event.channel,
+        `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`
+      );
+    });
   }
-});
-
-feeder.on("new-item", (item) => {
-  config.channels.forEach((channel) => {
-    bot.say(
-      channel,
-      `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`
-    );
-  });
 });
 
 bot.on("registered", () => {
