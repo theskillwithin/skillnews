@@ -61,10 +61,19 @@ bot.on("join", (event) => {
   console.log(event);
   if (event.nick === config.botName) {
     feeder.on("new-item", (item) => {
-      bot.say(
-        event.channel,
-        `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`
-      );
+      if (event.channel === "#typescript") {
+        if (item.link.toLowerCase().includes("typescript")) {
+          bot.say(
+            event.channel,
+            `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`
+          );
+        }
+      } else {
+        bot.say(
+          event.channel,
+          `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`
+        );
+      }
     });
   }
 });
