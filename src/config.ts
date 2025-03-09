@@ -14,13 +14,13 @@ const feeds = {
 } satisfies Feeds;
 
 type Channels = {
-  [k in string]: (keyof typeof feeds)[] | "*"
+  [k in `#${string}`]: (keyof typeof feeds)[] | "*"
 };
 
 export default {
   channels: {
     //"#nextjs": ["nextjs"],
-    //"reactjs": ["react", "remix"],
+    //"#reactjs": ["react", "remix"],
     //"#typescript": ["typescript"],
     "#gp": "*",
     "#primate": ["primate"],
