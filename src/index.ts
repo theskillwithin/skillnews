@@ -58,22 +58,13 @@ type Feed = keyof typeof config.feeds;
 
 const match_channels = (feed: Feed) =>
   Object.entries(config.channels)
-    .filter(([, feeds]) => (feeds === "*" as any) || (feeds as Feed[]).includes(feed))
+    .filter(([, feeds]) => feeds === "*" || (feeds as Feed[]).includes(feed))
     .map(([name]) => name);
-
-let i = 0;
 
 const init_feeder = () => {
   const feeder = new RSSFeedEmitter({ skipFirstLoad: true });
   Object.entries(config.feeds).forEach(([eventName, { url, refresh }]) => {
     feeder.on(eventName, item => {
-      if (item.meta.date === null) {
-        console.log(item.meta);
-      }
-      if (i > 5) {
-        return;
-      }
-      i++;
       match_channels(eventName as Feed).forEach(channel => {
         bot.say(
           channel,
