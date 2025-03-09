@@ -2,7 +2,7 @@
   "name": "rss-irc-bot",
   "version": "1.0.0",
   "description": "Watches RSS feeds and writes to IRC",
-  "main": "index.js",
+  "main": "lib/index.js",
   "repository": "https://github.com/MaxLeiter/rss-irc-bot",
   "author": "MaxLeiter",
   "license": "MIT",
