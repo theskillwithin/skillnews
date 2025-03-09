@@ -1,0 +1,7 @@
+{
+  "extends": "apekit/tsconfig",
+  "compilerOptions": {
+    "strict": false,
+    "strictNullChecks": true
+  }
+}
