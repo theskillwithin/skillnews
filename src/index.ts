@@ -3,6 +3,7 @@ import ip from "ip";
 import RSSFeedEmitter from "rss-feed-emitter";
 import c from "irc-colors";
 import config from "./config.js";
+import { setTimeout as sleep } from "node:timers/promises";
 
 const bot = new IRC.Client();
 
@@ -76,11 +77,6 @@ const init_feeder = () => {
     });
     feeder.add({ url, refresh, eventName });
   });
-};
-
-// Utility function to create a delay
-const sleep = (ms: number): Promise<void> => {
-  return new Promise((resolve) => setTimeout(resolve, ms));
 };
 
 bot.on("registered", async () => {
