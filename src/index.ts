@@ -24,10 +24,10 @@ function ip2Hex(address: string) {
 type Item = {
   "rss:author"?: {
     name: {
-      "#": string
-    }
-  }
-}
+      "#": string;
+    };
+  };
+};
 
 function getAuthors(item: Item) {
   if (!item["rss:author"]) return "";
@@ -45,7 +45,9 @@ bot.connect({
   host: config.server,
   nick: config.user.nick,
   gecos: config.user.name,
-  username: (config.hexip /*upcast*/as boolean) ? ip2Hex(ip.address()) : config.user.nick,
+  username: (config.hexip /*upcast*/ as boolean)
+    ? ip2Hex(ip.address())
+    : config.user.nick,
   password: config.user.password,
   auto_reconnect: true,
   auto_reconnect_wait: 4000,
@@ -64,21 +66,28 @@ const match_channels = (feed: Feed) =>
 const init_feeder = () => {
   const feeder = new RSSFeedEmitter({ skipFirstLoad: true });
   Object.entries(config.feeds).forEach(([eventName, { url, refresh }]) => {
-    feeder.on(eventName, item => {
-      match_channels(eventName as Feed).forEach(channel => {
+    feeder.on(eventName, (item) => {
+      match_channels(eventName as Feed).forEach((channel) => {
         bot.say(
           channel,
           `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`
         );
       });
-    })
+    });
     feeder.add({ url, refresh, eventName });
   });
+};
 
-}
+// Utility function to create a delay
+const sleep = (ms: number): Promise<void> => {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+};
 
-bot.on("registered", () => {
+bot.on("registered", async () => {
   bot.say("NickServ", `IDENTIFY ${config.user.nick} ${process.env.IDENTIFY}`);
+
+  // wait for 10 seconds before joining channels
+  await sleep(10000);
 
   Object.keys(config.channels).forEach((channel) => {
     bot.join(channel);
