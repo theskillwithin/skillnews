@@ -14,6 +14,13 @@ const feeds = {
     refresh: 600000,
   },
   primate: { url: "https://primatejs.com/blog.rss", refresh: 600000 },
+  reactnative: { url: "https://reactnative.dev/blog/rss.xml", refresh: 600000 },
+  babel: { url: "https://babeljs.io/blog/rss.xml", refresh: 600000 },
+  tailwindcss: {
+    url: "https://tailwindcss.com/feeds/feed.xml",
+    refresh: 600000,
+  },
+  vite: { url: "https://vite.dev/blog.rss", refresh: 600000 },
 } satisfies Feeds;
 
 type Channels = {
@@ -23,8 +30,16 @@ type Channels = {
 export default {
   channels: {
     "#nextjs": ["nextjs", "react", "remix"],
-    "#reactjs": ["react", "remix", "nextjs"],
-    "#typescript": ["typescript"],
+    "#reactjs": [
+      "react",
+      "remix",
+      "nextjs",
+      "vite",
+      "tailwindcss",
+      "babel",
+      "reactnative",
+    ],
+    "#typescript": ["typescript", "babel", "vite"],
     "#gp": "*",
     "#primate": ["primate"],
   },
