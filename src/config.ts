@@ -6,7 +6,7 @@ type Feeds = {
 };
 
 const feeds = {
-  nextjs: { url: "https://nextjs.org/feed.xml", refresh: 600000 },
+  nextjs: { url: "https://nextjs.org/feed.xml", refresh: 86_400_000 },
   remix: { url: "https://remix.run/blog/rss.xml", refresh: 600000 },
   react: { url: "https://react.dev/rss.xml", refresh: 600000 },
   typescript: {
