@@ -77,6 +77,9 @@ const init_feeder = () => {
     });
     feeder.add({ url, refresh, eventName });
   });
+
+  // Silent error handler to prevent crashes
+  feeder.on("error", () => {});
 };
 
 bot.on("registered", async () => {
