@@ -100,10 +100,11 @@ const init_feeder = () => {
   Object.entries(config.feeds).forEach(([eventName, { url, refresh }]) => {
     feeder.on(eventName, (item) => {
       match_channels(eventName as Feed).forEach((channel) => {
-        rateLimitedSay(
-          channel,
-          `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`
-        );
+        const authors = getAuthors(item);
+        const message = authors
+          ? `${c.blue(item.title)} - ${item.link} by ${authors}`
+          : `${c.blue(item.title)} - ${item.link}`;
+        rateLimitedSay(channel, message);
       });
     });
     feeder.add({ url, refresh, eventName });
