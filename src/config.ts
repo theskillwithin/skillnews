@@ -54,7 +54,7 @@ export default {
   rateLimit: {
     enabled: true,
     maxMessages: 5, // Maximum messages per interval
-    intervalMs: 60_000, // Interval in milliseconds (5 messages per minute = 60,000ms)
+    intervalMs: 60_000, // Interval in milliseconds (60,000ms = 1 minute or 60 seconds)
   },
 } satisfies {
   channels: Channels;
