@@ -80,7 +80,6 @@ const init_feeder = () => {
     feeder.on(feed, async (item) => {
       // feed has not been preseeded yet, do not output (first run)
       const preseeded = (await Item.count({ feed })) > 0;
-      console.log("preseeded", feed, preseeded);
       // link already in db?
       const found = (await Item.count({ link: item.link })) > 0;
       if (!found) {
