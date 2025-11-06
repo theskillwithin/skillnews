@@ -7,6 +7,34 @@ import { setTimeout as sleep } from "node:timers/promises";
 
 const bot = new IRC.Client();
 
+// Simple rate limiter: drop messages that exceed the limit
+let messageCount = 0;
+let intervalStart = Date.now();
+
+function rateLimitedSay(channel: string, message: string) {
+  if (!config.rateLimit.enabled) {
+    bot.say(channel, message);
+    return;
+  }
+
+  const now = Date.now();
+
+  // Reset counter if interval has passed
+  if (now - intervalStart >= config.rateLimit.intervalMs) {
+    messageCount = 0;
+    intervalStart = now;
+  }
+
+  // Drop message if we've exceeded the limit
+  if (messageCount >= config.rateLimit.maxMessages) {
+    return;
+  }
+
+  // Send message and increment counter
+  bot.say(channel, message);
+  messageCount++;
+}
+
 function ip2Hex(address: string) {
   return address
     .split(".")
@@ -69,7 +97,7 @@ const init_feeder = () => {
   Object.entries(config.feeds).forEach(([eventName, { url, refresh }]) => {
     feeder.on(eventName, (item) => {
       match_channels(eventName as Feed).forEach((channel) => {
-        bot.say(
+        rateLimitedSay(
           channel,
           `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`
         );
