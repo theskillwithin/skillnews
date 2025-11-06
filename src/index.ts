@@ -7,6 +7,34 @@ import { setTimeout as sleep } from "node:timers/promises";
 
 const bot = new IRC.Client();
 
+// Simple rate limiter: drop messages that exceed the limit
+let messageCount = 0;
+let intervalStart = Date.now();
+
+function rateLimitedSay(channel: string, message: string) {
+  if (!config.rateLimit.enabled) {
+    bot.say(channel, message);
+    return;
+  }
+
+  const now = Date.now();
+
+  // Reset counter if interval has passed
+  if (now - intervalStart >= config.rateLimit.intervalMs) {
+    messageCount = 0;
+    intervalStart = now;
+  }
+
+  // Drop message if we've exceeded the limit
+  if (messageCount >= config.rateLimit.maxMessages) {
+    return;
+  }
+
+  // Send message and increment counter
+  bot.say(channel, message);
+  messageCount++;
+}
+
 function ip2Hex(address: string) {
   return address
     .split(".")
@@ -35,6 +63,9 @@ function getAuthors(item: Item) {
 
   if (Array.isArray(item["rss:author"])) {
     const authors = item["rss:author"].map((author) => author.name["#"]);
+    if (authors.length === 0) return "";
+    if (authors.length === 1) return authors[0];
+
     const lastAuthor = authors.pop();
     return `${authors.join(", ")} and ${lastAuthor}`;
   }
@@ -69,10 +100,11 @@ const init_feeder = () => {
   Object.entries(config.feeds).forEach(([eventName, { url, refresh }]) => {
     feeder.on(eventName, (item) => {
       match_channels(eventName as Feed).forEach((channel) => {
-        bot.say(
-          channel,
-          `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`
-        );
+        const authors = getAuthors(item);
+        const message = authors
+          ? `${c.blue(item.title)} - ${item.link} by ${authors}`
+          : `${c.blue(item.title)} - ${item.link}`;
+        rateLimitedSay(channel, message);
       });
     });
     feeder.add({ url, refresh, eventName });

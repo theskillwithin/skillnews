@@ -51,6 +51,11 @@ export default {
   },
   feeds,
   hexip: false, // enable hexip? Probably false unless you know what you're doing.
+  rateLimit: {
+    enabled: true,
+    maxMessages: 5, // Maximum messages per interval
+    intervalMs: 60_000, // Interval in milliseconds (60,000ms = 1 minute or 60 seconds)
+  },
 } satisfies {
   channels: Channels;
   server: string;
@@ -61,4 +66,9 @@ export default {
   };
   feeds: Feeds;
   hexip: boolean;
+  rateLimit: {
+    enabled: boolean;
+    maxMessages: number;
+    intervalMs: number;
+  };
 };
