@@ -63,6 +63,9 @@ function getAuthors(item: Item) {
 
   if (Array.isArray(item["rss:author"])) {
     const authors = item["rss:author"].map((author) => author.name["#"]);
+    if (authors.length === 0) return "";
+    if (authors.length === 1) return authors[0];
+
     const lastAuthor = authors.pop();
     return `${authors.join(", ")} and ${lastAuthor}`;
   }
