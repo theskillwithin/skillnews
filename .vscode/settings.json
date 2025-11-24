@@ -1,0 +1,22 @@
+{
+  "workbench.colorCustomizations": {
+    "titleBar.activeForeground": "#e0e7ff",
+    "titleBar.inactiveForeground": "#a5b4fc",
+    "titleBar.activeBackground": "#4f46e5",
+    "titleBar.inactiveBackground": "#312e81"
+  },
+  "biome.enabled": false,
+  "eslint.enable": true,
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "prettier.enable": true,
+    "biome.enabled": false
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode",
+    "editor.formatOnSave": true,
+    "prettier.enable": true,
+    "biome.enabled": false
+  },
+}
