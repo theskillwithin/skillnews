@@ -13,7 +13,7 @@ const feeds = {
     url: "https://devblogs.microsoft.com/typescript/feed/",
     refresh: 600000,
   },
-  primate: { url: "https://primatejs.com/blog.rss", refresh: 600000 },
+  primate: { url: "https://primatejs.run/blog.rss", refresh: 600000 },
   reactnative: { url: "https://reactnative.dev/blog/rss.xml", refresh: 600000 },
   babel: { url: "https://babeljs.io/blog/rss.xml", refresh: 600000 },
   tailwindcss: {
