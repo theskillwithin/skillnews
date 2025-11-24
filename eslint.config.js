@@ -1,3 +1,8 @@
 import eslint from "apekit/lint";
 
-export default eslint(import.meta.dirname);
+export default [
+  ...eslint(import.meta.dirname),
+  {
+    ignores: ["eslint.config.js"],
+  },
+];

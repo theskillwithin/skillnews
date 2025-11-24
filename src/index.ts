@@ -15,7 +15,7 @@ const Item = new Store(
     feed: p.string,
     channel: p.string,
   },
-  { database: sqlite({ database: "./db.data" }), name: "item" }
+  { database: sqlite({ database: "./db.data" }), name: "item" },
 );
 Item.schema.create();
 
