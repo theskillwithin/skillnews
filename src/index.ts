@@ -8,11 +8,15 @@ import p from "pema";
 import RSSFeedEmitter from "rss-feed-emitter";
 import config from "./config.js";
 
-const Item = new Store({
-  id: p.primary,
-  link: p.string,
-  feed: p.string,
-}, { database: sqlite({ database: "./db.data" }), name: "item" });
+const Item = new Store(
+  {
+    id: p.primary,
+    link: p.string,
+    feed: p.string,
+    channel: p.string,
+  },
+  { database: sqlite({ database: "./db.data" }), name: "item" }
+);
 Item.schema.create();
 
 const bot = new IRC.Client();
@@ -78,22 +82,19 @@ const init_feeder = () => {
   const feeder = new RSSFeedEmitter();
   Object.entries(config.feeds).forEach(([feed, { url, refresh }]) => {
     feeder.on(feed, async (item) => {
-      // feed has not been preseeded yet, do not output (first run)
       const preseeded = (await Item.count({ feed })) > 0;
-      // link already in db?
-      const found = (await Item.count({ link: item.link })) > 0;
-      if (!found) {
-        await Item.insert({ link: item.link, feed });
+      const channels = match_channels(feed as Feed);
 
-        // only output links if the feed has been preseeded (entry is fresh)
-        // and this entry is not in the db
-        if (preseeded) {
-          match_channels(feed as Feed).forEach((channel) => {
+      for (const channel of channels) {
+        const found = (await Item.count({ link: item.link, channel })) > 0;
+        if (!found) {
+          await Item.insert({ link: item.link, feed, channel });
+          if (preseeded) {
             bot.say(
               channel,
               `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`,
             );
-          });
+          }
         }
       }
     });
@@ -101,7 +102,7 @@ const init_feeder = () => {
   });
 
   // Silent error handler to prevent crashes
-  feeder.on("error", () => { });
+  feeder.on("error", () => {});
 };
 
 bot.on("registered", async () => {
