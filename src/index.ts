@@ -50,10 +50,10 @@ function getAuthors(item: Item) {
   if (Array.isArray(item["rss:author"])) {
     const authors = item["rss:author"].map((author) => author.name["#"]);
     const lastAuthor = authors.pop();
-    return `${authors.join(", ")} and ${lastAuthor}`;
+    return `by ${authors.join(", ")} and ${lastAuthor}`;
   }
 
-  return `${item["rss:author"].name["#"]}`;
+  return `by ${item["rss:author"].name["#"]}`;
 }
 
 bot.connect({
@@ -92,7 +92,7 @@ const init_feeder = () => {
           if (preseeded) {
             bot.say(
               channel,
-              `${c.blue(item.title)} - ${item.link} by ${getAuthors(item)}`,
+              `${c.blue(item.title)} - ${item.link} ${getAuthors(item)}`,
             );
           }
         }
@@ -102,7 +102,7 @@ const init_feeder = () => {
   });
 
   // Silent error handler to prevent crashes
-  feeder.on("error", () => {});
+  feeder.on("error", () => { });
 };
 
 bot.on("registered", async () => {
