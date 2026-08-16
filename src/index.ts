@@ -67,15 +67,21 @@ type FeedItem = {
 };
 
 function getAuthors(item: FeedItem) {
-  if (item["rss:author"] === undefined) return "";
+  // Feed contents are not actually typed, so guard against a missing author
+  // rather than trusting the declared type.
+  const author = item["rss:author"] as FeedItem["rss:author"] | null;
 
-  if (Array.isArray(item["rss:author"])) {
-    const authors = item["rss:author"].map((author) => author.name["#"]);
+  if (author === undefined || author === null) {
+    return "";
+  }
+
+  if (Array.isArray(author)) {
+    const authors = author.map((each) => each.name["#"]);
     const lastAuthor = authors.pop();
     return `by ${authors.join(", ")} and ${lastAuthor}`;
   }
 
-  return `by ${item["rss:author"].name["#"]}`;
+  return `by ${author.name["#"]}`;
 }
 
 bot.connect({

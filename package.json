@@ -7,6 +7,9 @@
   "author": "MaxLeiter",
   "license": "MIT",
   "private": false,
+  "engines": {
+    "node": ">=24"
+  },
   "scripts": {
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
