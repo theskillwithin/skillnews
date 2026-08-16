@@ -50,7 +50,8 @@ export default {
     password: "",
   },
   feeds,
-  hexip: false, // enable hexip? Probably false unless you know what you're doing.
+  // enable hexip? Probably false unless you know what you're doing.
+  hexip: false,
 } satisfies {
   channels: Channels;
   server: string;
