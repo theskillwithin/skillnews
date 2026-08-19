@@ -1,16 +1,19 @@
 image: archlinux
 packages:
   - nodejs
-  - yarn
+  - npm
 environment:
   build_env: production
-  project: rss-irc-bot
+  project: skillnews
 sources:
-  - https://github.com/MaxLeiter/rss-irc-bot
+  - https://github.com/theskillwithin/skillnews
 tasks:
   - prepare: |
       cd ${project}
-      yarn
-  - test: |
+      npm ci
+  - build: |
       cd ${project}
-      yarn test
+      npm run build
+  - lint: |
+      cd ${project}
+      npm run lint

@@ -1,25 +1,47 @@
-import Store from "@primate/core/database/Store";
+import store from "@primate/core/store";
 import sqlite from "@primate/sqlite";
-import ip from "ip";
 import c from "irc-colors";
 import IRC from "irc-framework";
+import type { EventEmitter } from "node:events";
+import { networkInterfaces } from "node:os";
 import { setTimeout as sleep } from "node:timers/promises";
 import p from "pema";
 import RSSFeedEmitter from "rss-feed-emitter";
 import config from "./config.js";
 
-const Item = new Store(
-  {
-    id: p.primary,
+const db = sqlite({ database: "./db.data" });
+
+const Item = store({
+  table: "item",
+  db,
+  schema: {
+    id: store.key.primary(p.u32),
     link: p.string,
     feed: p.string,
     channel: p.string,
   },
-  { database: sqlite({ database: "./db.data" }), name: "item" },
-);
-Item.schema.create();
+});
+
+await Item.create();
 
 const bot = new IRC.Client();
+
+// First non-internal IPv4 address of this host, or a loopback fallback.
+function localAddress() {
+  const addresses = Object.values(networkInterfaces()).flat();
+
+  for (const address of addresses) {
+    if (
+      address !== undefined &&
+      address.family === "IPv4" &&
+      !address.internal
+    ) {
+      return address.address;
+    }
+  }
+
+  return "127.0.0.1";
+}
 
 function ip2Hex(address: string) {
   return address
@@ -36,24 +58,40 @@ function ip2Hex(address: string) {
     .join("");
 }
 
-type Item = {
-  "rss:author"?: {
-    name: {
-      "#": string;
-    };
+type Author = {
+  name: {
+    "#": string;
   };
 };
 
-function getAuthors(item: Item) {
-  if (!item["rss:author"]) return "";
+type FeedItem = {
+  "rss:author"?: Author;
+};
 
-  if (Array.isArray(item["rss:author"])) {
-    const authors = item["rss:author"].map((author) => author.name["#"]);
-    const lastAuthor = authors.pop();
-    return `by ${authors.join(", ")} and ${lastAuthor}`;
+function getAuthors(item: FeedItem) {
+  // Feed contents are not actually typed: `rss:author` may be absent, a single
+  // author, or an array of them. Normalise to an array before formatting rather
+  // than trusting the declared type.
+  const author = item["rss:author"] as Author | Author[] | null | undefined;
+
+  if (author === undefined || author === null) {
+    return "";
   }
 
-  return `by ${item["rss:author"].name["#"]}`;
+  const authors = (Array.isArray(author) ? author : [author]).map(
+    (each) => each.name["#"],
+  );
+
+  if (authors.length === 0) {
+    return "";
+  }
+
+  if (authors.length === 1) {
+    return `by ${authors[0]}`;
+  }
+
+  const lastAuthor = authors.pop();
+  return `by ${authors.join(", ")} and ${lastAuthor}`;
 }
 
 bot.connect({
@@ -61,7 +99,7 @@ bot.connect({
   nick: config.user.nick,
   gecos: config.user.name,
   username: (config.hexip /*upcast*/ as boolean)
-    ? ip2Hex(ip.address())
+    ? ip2Hex(localAddress())
     : config.user.nick,
   password: config.user.password,
   auto_reconnect: true,
@@ -79,14 +117,17 @@ const match_channels = (feed: Feed) =>
     .map(([name]) => name);
 
 const init_feeder = () => {
-  const feeder = new RSSFeedEmitter();
+  // rss-feed-emitter extends EventEmitter at runtime, but its generated
+  // typings only declare `emit`, so widen the type to expose `on`.
+  const feeder = new RSSFeedEmitter() as RSSFeedEmitter & EventEmitter;
   Object.entries(config.feeds).forEach(([feed, { url, refresh }]) => {
     feeder.on(feed, async (item) => {
-      const preseeded = (await Item.count({ feed })) > 0;
+      const preseeded = (await Item.count({ where: { feed } })) > 0;
       const channels = match_channels(feed as Feed);
 
       for (const channel of channels) {
-        const found = (await Item.count({ link: item.link, channel })) > 0;
+        const found =
+          (await Item.count({ where: { link: item.link, channel } })) > 0;
         if (!found) {
           await Item.insert({ link: item.link, feed, channel });
           if (preseeded) {
@@ -102,7 +143,7 @@ const init_feeder = () => {
   });
 
   // Silent error handler to prevent crashes
-  feeder.on("error", () => { });
+  feeder.on("error", () => {});
 };
 
 bot.on("registered", async () => {
