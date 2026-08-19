@@ -3,6 +3,28 @@
 This release upgrades Primate from 0.3 to 0.9 and requires **Node.js 24**.
 Read the database note before restarting the bot.
 
+## 0. Authentication moved to SASL
+
+The bot now identifies with **SASL** during connection registration instead of
+messaging NickServ after connecting, and connects over **TLS on port 6697**
+(it previously used plaintext 6667, which meant the account password crossed
+the wire in the clear).
+
+Nothing new to configure — the same `IDENTIFY` secret is reused as the SASL
+password. It is now required at startup: the bot exits immediately with
+`IDENTIFY is not set` rather than silently running unidentified.
+
+Why: the old flow sent `IDENTIFY` and then joined channels on a fixed
+10-second timer. A timer is a guess, not a confirmation — whenever services
+lagged, the joins went out before identification completed and `+r` channels
+rejected them silently, leaving the bot in fewer channels with nothing in the
+logs. SASL completes before registration finishes, so joining while
+unidentified is no longer possible.
+
+If authentication fails the bot now disconnects and logs
+`SASL authentication failed (<reason>)` rather than carrying on unidentified.
+Check that first if it starts looping on reconnect after this upgrade.
+
 ## 1. Node.js 24
 
 The bot now needs Node 24 or newer. `@primate/sqlite` uses the built-in

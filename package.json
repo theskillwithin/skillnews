@@ -14,7 +14,8 @@
     "build": "npm run clean && tsc",
     "clean": "rm -rf ./lib",
     "start": "npm run build && node lib/index.js",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "verify-auth": "node verify-auth.js"
   },
   "dependencies": {
     "@primate/core": "^0.9.12",

@@ -94,14 +94,34 @@ function getAuthors(item: FeedItem) {
   return `by ${authors.join(", ")} and ${lastAuthor}`;
 }
 
+// Without a secret SASL cannot succeed, and sasl_disconnect_on_fail would turn
+// that into a silent reconnect loop. Say so plainly instead.
+const identify = process.env.IDENTIFY;
+
+if (identify === undefined || identify === "") {
+  console.error("IDENTIFY is not set - cannot authenticate, refusing to start");
+  process.exit(1);
+}
+
 bot.connect({
   host: config.server,
+  // TLS is required: SASL PLAIN sends the account password base64-encoded,
+  // which is encoding, not encryption. irc-framework defaults to plaintext
+  // 6667, so both have to be set explicitly.
+  port: 6697,
+  tls: true,
+  rejectUnauthorized: true,
   nick: config.user.nick,
   gecos: config.user.name,
   username: (config.hexip /*upcast*/ as boolean)
     ? ip2Hex(localAddress())
     : config.user.nick,
   password: config.user.password,
+  // Identify as part of connection registration rather than messaging NickServ
+  // afterwards, so we are never joined to a channel while unidentified.
+  account: { account: config.user.nick, password: identify },
+  // Joining unidentified is the bug this replaces; fail loudly instead.
+  sasl_disconnect_on_fail: true,
   auto_reconnect: true,
   auto_reconnect_wait: 4000,
   auto_reconnect_max_retries: 3,
@@ -147,16 +167,28 @@ const init_feeder = () => {
 };
 
 bot.on("registered", async () => {
-  bot.say("NickServ", `IDENTIFY ${config.user.nick} ${process.env.IDENTIFY}`);
-
-  // wait for 10 seconds before joining channels
-  await sleep(10000);
-
+  // SASL identifies us during CAP negotiation, before registration completes,
+  // so the server already knows who we are by the time we get here and it is
+  // safe to join immediately.
+  //
+  // This previously fired IDENTIFY at NickServ and then joined on a fixed
+  // 10-second timer, which is a guess rather than a confirmation. Whenever
+  // services lagged, the joins went out unidentified and +r channels rejected
+  // them silently.
   Object.keys(config.channels).forEach((channel) => {
     bot.join(channel);
   });
 
-  setTimeout(() => {
-    init_feeder();
-  }, 5000);
+  // Give the joins a moment to be acknowledged before the first feed poll can
+  // try to post into them.
+  await sleep(5000);
+  init_feeder();
+});
+
+// With sasl_disconnect_on_fail the client drops the connection rather than
+// carrying on unidentified, so surface why before it reconnects.
+bot.on("sasl failed", (event: { reason: string }) => {
+  console.error(
+    `SASL authentication failed (${event.reason}) - check the IDENTIFY secret`,
+  );
 });
