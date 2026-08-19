@@ -3,6 +3,6 @@ import eslint from "apekit/lint";
 export default [
   ...eslint(import.meta.dirname),
   {
-    ignores: ["eslint.config.js"],
+    ignores: ["eslint.config.js", "verify-auth.js"],
   },
 ];
