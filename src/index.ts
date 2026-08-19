@@ -58,30 +58,40 @@ function ip2Hex(address: string) {
     .join("");
 }
 
-type FeedItem = {
-  "rss:author"?: {
-    name: {
-      "#": string;
-    };
+type Author = {
+  name: {
+    "#": string;
   };
 };
 
+type FeedItem = {
+  "rss:author"?: Author;
+};
+
 function getAuthors(item: FeedItem) {
-  // Feed contents are not actually typed, so guard against a missing author
-  // rather than trusting the declared type.
-  const author = item["rss:author"] as FeedItem["rss:author"] | null;
+  // Feed contents are not actually typed: `rss:author` may be absent, a single
+  // author, or an array of them. Normalise to an array before formatting rather
+  // than trusting the declared type.
+  const author = item["rss:author"] as Author | Author[] | null | undefined;
 
   if (author === undefined || author === null) {
     return "";
   }
 
-  if (Array.isArray(author)) {
-    const authors = author.map((each) => each.name["#"]);
-    const lastAuthor = authors.pop();
-    return `by ${authors.join(", ")} and ${lastAuthor}`;
+  const authors = (Array.isArray(author) ? author : [author]).map(
+    (each) => each.name["#"],
+  );
+
+  if (authors.length === 0) {
+    return "";
   }
 
-  return `by ${author.name["#"]}`;
+  if (authors.length === 1) {
+    return `by ${authors[0]}`;
+  }
+
+  const lastAuthor = authors.pop();
+  return `by ${authors.join(", ")} and ${lastAuthor}`;
 }
 
 bot.connect({

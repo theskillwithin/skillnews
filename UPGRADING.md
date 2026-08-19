@@ -59,7 +59,7 @@ should just work. Confirm it:
 ```bash
 node -e "const {DatabaseSync} = require('node:sqlite');
 const db = new DatabaseSync('./db.data');
-console.log(db.prepare(\"select sql from sqlite_master where name='item'\").get());"
+console.log(db.prepare(\"select sql from sqlite_master where name='item'\").get()?.sql);"
 ```
 
 Expect all four columns — `id`, `link`, `feed`, `channel`:
